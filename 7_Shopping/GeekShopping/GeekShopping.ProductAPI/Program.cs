@@ -19,6 +19,7 @@ builder.Services.AddDbContext<MySQLContext>(options =>
         options.UseMySql(
             connection,
             new MySqlServerVersion(new Version(8, 0, 34)));
+        options.UseQueryTrackingBehavior(QueryTrackingBehavior.NoTracking);
     });
 
 IMapper mapper = MappingConfig.RegisterMaps().CreateMapper();
