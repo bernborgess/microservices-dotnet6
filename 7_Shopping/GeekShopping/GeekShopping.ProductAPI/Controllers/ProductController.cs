@@ -43,13 +43,7 @@ namespace GeekShopping.ProductAPI.Controllers
         public async Task<ActionResult<ProductVO>> Update(ProductVO vo)
         {
             if (vo == null) return BadRequest();
-            var existingProduct = await _repository.FindById(vo.Id);
-            if (existingProduct == null) return NotFound();
-
-            // TODO: Other fields
-            existingProduct.Description = vo.Description;
-
-            var product = await _repository.Update(existingProduct);
+            var product = await _repository.Update(vo);
             return Ok(product);
         }
 
