@@ -25,7 +25,7 @@ builder.Services.AddDbContext<MySQLContext>(options =>
         options.UseQueryTrackingBehavior(QueryTrackingBehavior.NoTracking);
     });
 
-var IdentityServerBuilder = builder.Services.AddIdentityServer(options =>
+builder.Services.AddIdentityServer(options =>
 {
     options.Events.RaiseErrorEvents = true;
     options.Events.RaiseInformationEvents = true;
@@ -37,11 +37,15 @@ var IdentityServerBuilder = builder.Services.AddIdentityServer(options =>
 .AddInMemoryIdentityResources(IdentityConfiguration.IdentityResources)
 .AddInMemoryApiScopes(IdentityConfiguration.ApiScopes)
 .AddInMemoryClients(IdentityConfiguration.Clients)
-.AddAspNetIdentity<ApplicationUser>();
+.AddAspNetIdentity<ApplicationUser>()
+.AddDeveloperSigningCredential();
 
 builder.Services.AddScoped<IDbInitializer, DbInitializer>();
 
-IdentityServerBuilder.AddDeveloperSigningCredential();
+/* ERROR */
+// builder.Services.AddScoped<IProfileService, ProfileService>();
+
+
 
 var app = builder.Build();
 
