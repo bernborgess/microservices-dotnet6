@@ -10,6 +10,12 @@ var builder = WebApplication.CreateBuilder(args);
 // Add services to the container.
 builder.Services.AddControllersWithViews();
 
+
+builder.Services.AddIdentity<ApplicationUser, IdentityRole>()
+    .AddEntityFrameworkStores<MySQLContext>()
+    .AddDefaultTokenProviders();
+
+
 builder.Services.AddDbContext<MySQLContext>(options =>
     {
         var connection = builder.Configuration["MySQLConnection:MySQLConnectionString"];
@@ -18,10 +24,6 @@ builder.Services.AddDbContext<MySQLContext>(options =>
             new MySqlServerVersion(new Version(8, 0, 34)));
         options.UseQueryTrackingBehavior(QueryTrackingBehavior.NoTracking);
     });
-
-builder.Services.AddIdentity<ApplicationUser, IdentityRole>()
-    .AddEntityFrameworkStores<MySQLContext>()
-    .AddDefaultTokenProviders();
 
 var IdentityServerBuilder = builder.Services.AddIdentityServer(options =>
 {
