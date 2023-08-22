@@ -1,20 +1,15 @@
+using Duende.IdentityServer.Services;
 using GeekShopping.IdentityServer.Configuration;
 using GeekShopping.IdentityServer.Initializer;
 using GeekShopping.IdentityServer.Model;
 using GeekShopping.IdentityServer.Model.Context;
+using GeekShopping.IdentityServer.Services;
 using Microsoft.AspNetCore.Identity;
 using Microsoft.EntityFrameworkCore;
 
 var builder = WebApplication.CreateBuilder(args);
 
 // Add services to the container.
-builder.Services.AddControllersWithViews();
-
-
-builder.Services.AddIdentity<ApplicationUser, IdentityRole>()
-    .AddEntityFrameworkStores<MySQLContext>()
-    .AddDefaultTokenProviders();
-
 
 builder.Services.AddDbContext<MySQLContext>(options =>
     {
@@ -25,7 +20,11 @@ builder.Services.AddDbContext<MySQLContext>(options =>
         options.UseQueryTrackingBehavior(QueryTrackingBehavior.NoTracking);
     });
 
-builder.Services.AddIdentityServer(options =>
+builder.Services.AddIdentity<ApplicationUser, IdentityRole>()
+    .AddEntityFrameworkStores<MySQLContext>()
+    .AddDefaultTokenProviders();
+
+var builderServices = builder.Services.AddIdentityServer(options =>
 {
     options.Events.RaiseErrorEvents = true;
     options.Events.RaiseInformationEvents = true;
@@ -37,17 +36,22 @@ builder.Services.AddIdentityServer(options =>
 .AddInMemoryIdentityResources(IdentityConfiguration.IdentityResources)
 .AddInMemoryApiScopes(IdentityConfiguration.ApiScopes)
 .AddInMemoryClients(IdentityConfiguration.Clients)
-.AddAspNetIdentity<ApplicationUser>()
-.AddDeveloperSigningCredential();
+.AddAspNetIdentity<ApplicationUser>();
 
 builder.Services.AddScoped<IDbInitializer, DbInitializer>();
+builder.Services.AddScoped<IProfileService, ProfileService>();
 
-/* ERROR */
-// builder.Services.AddScoped<IProfileService, ProfileService>();
+builderServices.AddDeveloperSigningCredential();
 
 
+// Add services to the container
+builder.Services.AddControllersWithViews();
 
 var app = builder.Build();
+
+var initializer = app.Services.CreateScope()
+    .ServiceProvider
+    .GetService<IDbInitializer>();
 
 // Configure the HTTP request pipeline.
 if (!app.Environment.IsDevelopment())
@@ -65,13 +69,7 @@ app.UseIdentityServer();
 
 app.UseAuthorization();
 
-// Initialize User Database
-using (var scope = app.Services.CreateScope())
-{
-    var dbInitializer = scope.ServiceProvider.GetRequiredService<IDbInitializer>();
-    dbInitializer.Initialize();
-}
-
+initializer.Initialize();
 
 app.MapControllerRoute(
     name: "default",

@@ -11,11 +11,11 @@ namespace GeekShopping.IdentityServer.Services
     public class ProfileService : IProfileService
     {
         private readonly UserManager<ApplicationUser> _userManager;
-        private readonly RoleManager<ApplicationUser> _roleManager;
+        private readonly RoleManager<IdentityRole> _roleManager;
         private readonly IUserClaimsPrincipalFactory<ApplicationUser> _userClaimsPrincipalFactory;
 
         public ProfileService(UserManager<ApplicationUser> userManager,
-            RoleManager<ApplicationUser> roleManager,
+            RoleManager<IdentityRole> roleManager,
             IUserClaimsPrincipalFactory<ApplicationUser> userClaimsPrincipalFactory)
         {
             _userManager = userManager;
@@ -42,11 +42,13 @@ namespace GeekShopping.IdentityServer.Services
                     claims.Add(new Claim(JwtClaimTypes.Role, role));
                     if (_roleManager.SupportsRoleClaims)
                     {
-                        ApplicationUser identityRole = await _roleManager
+                        IdentityRole identityRole = await _roleManager
                             .FindByNameAsync(role);
-
-                        if (identityRole != null) claims.AddRange(
-                            await _roleManager.GetClaimsAsync(identityRole));
+                        if (identityRole != null)
+                        {
+                            claims.AddRange(await _roleManager
+                                .GetClaimsAsync(identityRole));
+                        }
                     }
                 }
             }
@@ -55,10 +57,9 @@ namespace GeekShopping.IdentityServer.Services
 
         public async Task IsActiveAsync(IsActiveContext context)
         {
-            string subject = context.Subject.GetSubjectId();
-            ApplicationUser user = await _userManager.FindByIdAsync(subject);
+            string id = context.Subject.GetSubjectId();
+            ApplicationUser user = await _userManager.FindByIdAsync(id);
             context.IsActive = user != null;
-
         }
     }
 }
